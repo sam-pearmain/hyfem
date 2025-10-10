@@ -2,7 +2,7 @@ import ufl
 import numbers
 
 from typing import Self, Tuple, Type, List
-from firedrake import SpatialCoordinate, FacetNormal
+from firedrake import SpatialCoordinate, FacetNormal, FunctionSpace, VectorFunctionSpace
 from firedrake.mesh import MeshGeometry, MeshTopology
 from hyfem.equations.base import Equation
 from hyfem.core.spaces import Spaces
@@ -28,21 +28,34 @@ class Domain(object):
         elif not _has_firedrake_default_name(self.mesh):
             self.name = self.mesh.name
         else:
-            self.name = "_default_domain_name_"
+            self.name = f"_default_{self._equation.__name__}_domain_"
 
-    def assign_variable(self, var_name: str, family: str, degree: int) -> None:
-        """Assigns a variable from the domain's equation set to a given function space"""
+    def assign_function_space(
+            self, 
+            family: str, 
+            degree: int, 
+            var_name: str, 
+            vector_valued: bool = False, 
+        ) -> None:
+        """Assigns a variable from the domain's equation set to a given scalar-valued function space"""
         if (var_name not in self._equation.state_variables() and 
             var_name not in self._equation.auxiliary_variables()):
             raise ValueError(
-                f"given variable {var_name} not in {self._equation.__name__}'s\n" +
+                f"given variable: {var_name} not in {self._equation.__name__}'s\n" +
                 f"state variables: {self._equation.state_variables()} \nor \n " +
                 f"auxiliary variables: {self._equation.auxiliary_variables()}"
             )
         
-        
-            
+        if vector_valued:
+            V = VectorFunctionSpace(self._mesh, family, degree, name = f"V_{var_name}")
+        else:
+            V = FunctionSpace(self._mesh, family, degree, name = f"V_{var_name}")
 
+        if V in self._spaces:
+            raise ValueError(f"function space {V} already defined")
+
+        self._spaces.append(V)
+    
     @property
     def spatial_coordinates(self) -> SpatialCoordinate:
         return SpatialCoordinate(self.mesh)
