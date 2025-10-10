@@ -1,0 +1,8 @@
+.venv/
+petsc/
+simulations/
+
+__pycache__/
+*.pyc
+
+firedrake-configure
