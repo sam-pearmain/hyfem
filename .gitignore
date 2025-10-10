@@ -1,5 +1,6 @@
 # root ignores
 .venv/
+.vscode/
 petsc/
 
 # python ignores

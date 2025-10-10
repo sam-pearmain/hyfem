@@ -1,0 +1,1 @@
+Never automatically change code. Only make code suggestions within the terminal for me to review.
