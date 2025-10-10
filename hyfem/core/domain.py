@@ -1,25 +1,27 @@
 import ufl
 import numbers
 
-from firedrake import FunctionSpace, SpatialCoordinate, FacetNormal
+from typing import Self, Tuple, Type, List
+from firedrake import SpatialCoordinate, FacetNormal
 from firedrake.mesh import MeshGeometry, MeshTopology
-
+from hyfem.equations.base import Equation
+from hyfem.core.spaces import Spaces
 
 class Domain(object):
     """The problem domain"""
+
     def __init__(
             self, 
             mesh: MeshGeometry, 
-            family: str, 
-            degree: int, 
+            equation: Type[Equation], 
             name: str | None = None
         ) -> None:
         if not _has_standard_topology_backend(mesh):
             raise TypeError(f"unsupported mesh topology of type: {type(mesh.topology)}")
         
-        self.mesh = mesh
-        self.family = family
-        self.degree = degree
+        self._mesh = mesh
+        self._spaces = []
+        self._equation = equation
         
         if name is not None:
             self.name = name 
@@ -27,6 +29,19 @@ class Domain(object):
             self.name = self.mesh.name
         else:
             self.name = "_default_domain_name_"
+
+    def assign_variable(self, var_name: str, family: str, degree: int) -> None:
+        """Assigns a variable from the domain's equation set to a given function space"""
+        if (var_name not in self._equation.state_variables() and 
+            var_name not in self._equation.auxiliary_variables()):
+            raise ValueError(
+                f"given variable {var_name} not in {self._equation.__name__}'s\n" +
+                f"state variables: {self._equation.state_variables()} \nor \n " +
+                f"auxiliary variables: {self._equation.auxiliary_variables()}"
+            )
+        
+        
+            
 
     @property
     def spatial_coordinates(self) -> SpatialCoordinate:
