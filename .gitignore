@@ -1,8 +1,14 @@
+# root ignores
 .venv/
 petsc/
-simulations/
 
+# python ignores
 __pycache__/
 *.pyc
 
+# simulation files
+*.pvd
+*.vtu
+
+# other
 firedrake-configure
