@@ -5,7 +5,7 @@ class Equation(abc.ABC):
     @classmethod
     @abc.abstractmethod
     def state_variables(cls) -> List[str]: 
-        """The state variables of the equation, for example [u, rho_u, E]"""
+        """The state variables of the equation, for example [rho, rho_u, E]"""
         ...
 
     @classmethod
@@ -13,6 +13,11 @@ class Equation(abc.ABC):
     def auxiliary_variables(cls) -> List[str]: 
         """The auxiliary variables of the equation, for example [k, ε]"""
         ...
+
+    @classmethod
+    def variables(cls) -> List[str]:
+        """All the variables of the equation"""
+        return cls.state_variables() + cls.auxiliary_variables()
 
     @classmethod
     def n_state_variables(cls) -> int: return len(cls.state_variables())

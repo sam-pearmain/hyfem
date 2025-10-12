@@ -1,14 +1,18 @@
+from multiprocessing import Value
 import ufl
 import numbers
 
-from typing import TypeVar, Generic
-from firedrake import SpatialCoordinate, FacetNormal, FunctionSpace, VectorFunctionSpace
+from typing import Any, Mapping, TypeVar, Generic
+from firedrake import SpatialCoordinate, FacetNormal, FunctionSpace, VectorFunctionSpace, BaseFunctionSpace
 from firedrake.mesh import MeshGeometry, MeshTopology
 from hyfem.equations.base import Equation
 
 E = TypeVar('E', bound = Equation)
 class Domain(Generic[E], object):
     """The problem domain"""
+    _mesh: MeshGeometry
+    _spaces: Mapping[str, BaseFunctionSpace | None] # should be its own class
+    _equation: Equation
 
     def __init__(
             self, 
@@ -20,7 +24,7 @@ class Domain(Generic[E], object):
             raise TypeError(f"unsupported mesh topology of type: {type(mesh.topology)}")
         
         self._mesh = mesh
-        self._spaces = []
+        self._spaces = {v: None for v in equation.variables()}
         self._equation = equation
         
         if name is not None:
@@ -40,22 +44,37 @@ class Domain(Generic[E], object):
         """Assigns a variable from the domain's equation set to a given scalar-valued function space"""
         if (var_name not in self._equation.state_variables() and 
             var_name not in self._equation.auxiliary_variables()):
-            raise ValueError(
-                f"given variable: {var_name} not in {self._equation.__name__}'s\n" +
-                f"state variables: {self._equation.state_variables()} \nor \n " +
-                f"auxiliary variables: {self._equation.auxiliary_variables()}"
-            )
+            raise self._var_not_found(var_name)
         
         if vector_valued:
             V = VectorFunctionSpace(self._mesh, family, degree, name = f"V_{var_name}")
         else:
             V = FunctionSpace(self._mesh, family, degree, name = f"V_{var_name}")
 
-        if V in self._spaces:
-            raise ValueError(f"function space {V} already defined")
-
-        self._spaces.append(V)
+        if self._spaces.get(var_name) is not None:
+            raise self._space_already_defined()
+        
+        self._spaces[var_name] = V
     
+    def function_space(self, var_name: str | None = None) -> Any:
+        """
+        Returns the function space for the given variable, if no variable is given
+        then the entire mixed function space is returned
+        """
+        if var_name is not None:
+            if var_name not in self._spaces:
+                raise self._var_not_found(var_name)
+            
+            space = self._spaces[var_name]
+
+            if space is None:
+                raise self._space_not_defined()
+            
+            return space
+        else:
+            
+
+
     @property
     def spatial_coordinates(self) -> SpatialCoordinate:
         return SpatialCoordinate(self.mesh)
@@ -71,6 +90,24 @@ class Domain(Generic[E], object):
     @property
     def geometric_dimensions(self) -> numbers.Integral:
         return self.mesh.geometric_dimension()
+    
+    def _check_all_spaces_assigned(self) -> bool:
+        if any(space is None for space in self._spaces.values()):
+            return False
+        return True
+    
+    def _var_not_found(self, var_name: str) -> ValueError:
+        return ValueError(
+            f"given variable: {var_name} not in {self._equation.__name__}'s\n" +
+            f"state variables: {self._equation.state_variables()} \n or \n " +
+            f"auxiliary variables: {self._equation.auxiliary_variables()}"
+        )
+    
+    def _space_not_defined(self, var_name: str) -> ValueError:
+        return ValueError(f"function space not defined for variable: {var_name}")
+    
+    def _space_already_defined(self, var_name: str) -> ValueError:
+        return ValueError(f"function space already defined for variable: {var_name}")
     
 def _has_standard_topology_backend(mesh: MeshGeometry) -> bool:
     return type(mesh.topology) is MeshTopology
