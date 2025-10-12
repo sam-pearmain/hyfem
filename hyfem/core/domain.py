@@ -1,19 +1,19 @@
 import ufl
 import numbers
 
-from typing import Self, Tuple, Type, List
+from typing import TypeVar, Generic
 from firedrake import SpatialCoordinate, FacetNormal, FunctionSpace, VectorFunctionSpace
 from firedrake.mesh import MeshGeometry, MeshTopology
 from hyfem.equations.base import Equation
-from hyfem.core.spaces import Spaces
 
-class Domain(object):
+E = TypeVar('E', bound = Equation)
+class Domain(Generic[E], object):
     """The problem domain"""
 
     def __init__(
             self, 
             mesh: MeshGeometry, 
-            equation: Type[Equation], 
+            equation: E, 
             name: str | None = None
         ) -> None:
         if not _has_standard_topology_backend(mesh):
