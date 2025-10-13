@@ -72,7 +72,7 @@ class Domain(Generic[E], object):
             
             return space
         else:
-            
+            TODO
 
 
     @property
