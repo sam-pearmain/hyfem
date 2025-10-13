@@ -2,7 +2,10 @@ import ufl
 import numbers
 
 from typing import Any, Mapping, TypeVar, Generic, List
-from firedrake import SpatialCoordinate, FacetNormal, FunctionSpace, VectorFunctionSpace, BaseFunctionSpace, MixedFunctionSpace
+from firedrake import (
+    SpatialCoordinate, FacetNormal, FunctionSpace, VectorFunctionSpace, BaseFunctionSpace, 
+    MixedFunctionSpace
+)
 from firedrake.mesh import MeshGeometry, MeshTopology
 
 from hyfem.equations.base import Equation
@@ -12,7 +15,7 @@ E = TypeVar('E', bound = Equation)
 class Domain(Generic[E], object):
     """The problem domain"""
     _mesh: MeshGeometry
-    _spaces: Mapping[str, BaseFunctionSpace | None] # should be its own class
+    _spaces: Mapping[str, BaseFunctionSpace | None] # should probably be its own class
     _equation: Equation
 
     def __init__(
@@ -26,7 +29,9 @@ class Domain(Generic[E], object):
         self._equation = equation
         
         if not self._has_standard_topology_backend():
-            raise TypeError(f"unsupported mesh topology of type: {type(self._mesh.topology)}")
+            raise TypeError(
+                f"unsupported mesh topology of type: {type(self._mesh.topology)}"
+            )
         
         if name is not None:
             self.name = name 
@@ -42,7 +47,10 @@ class Domain(Generic[E], object):
             var_name: str, 
             vector_valued: bool = False, 
         ) -> None:
-        """Assigns a variable from the domain's equation set to a given scalar-valued function space"""
+        """
+        Assigns a variable from the domain's equation set to a given scalar-valued 
+        function space
+        """
         if (var_name not in self._equation.state_variables() and 
             var_name not in self._equation.auxiliary_variables()):
             raise self._var_not_found(var_name)
@@ -80,17 +88,21 @@ class Domain(Generic[E], object):
 
             return MixedFunctionSpace(spaces)
 
+    @property
     def spatial_coordinates(self) -> SpatialCoordinate:
-        return SpatialCoordinate(self.mesh)
+        return SpatialCoordinate(self._mesh)
 
+    @property
     def facet_normal(self) -> ufl.FacetNormal:
-        return FacetNormal(self.mesh)
+        return FacetNormal(self._mesh)
     
+    @property
     def topological_dimensions(self) -> numbers.Integral:
-        return self.mesh.topological_dimension()
+        return self._mesh.topological_dimension()
     
+    @property
     def geometric_dimensions(self) -> numbers.Integral:
-        return self.mesh.geometric_dimension()
+        return self._mesh.geometric_dimension()
     
     @check
     def _check_all_spaces_assigned(self) -> bool:
