@@ -83,29 +83,29 @@ class Domain(Generic[E], object):
         else:
             spaces = self._spaces.values()
 
-            if any(spaces) == None:
+            if not self._all_spaces_assigned():
                 raise self._space_not_defined()
 
             return MixedFunctionSpace(spaces)
 
-    @property
+    @Property
     def spatial_coordinates(self) -> SpatialCoordinate:
         return SpatialCoordinate(self._mesh)
 
-    @property
+    @Property
     def facet_normal(self) -> ufl.FacetNormal:
         return FacetNormal(self._mesh)
     
-    @property
+    @Property
     def topological_dimensions(self) -> numbers.Integral:
         return self._mesh.topological_dimension()
     
-    @property
+    @Property
     def geometric_dimensions(self) -> numbers.Integral:
         return self._mesh.geometric_dimension()
     
     @check
-    def _check_all_spaces_assigned(self) -> bool:
+    def _all_spaces_assigned(self) -> bool:
         if any(space is None for space in self._spaces.values()):
             return False
         return True

@@ -2,9 +2,16 @@ import functools
 from typing import Any, Callable, TypeVar
 
 __any__ = [
+    "Property", 
+    "ClassMethod", 
+    "StaticMethod",
     "error", 
     "check", 
 ]
+
+Property = property
+ClassMethod = classmethod
+StaticMethod = staticmethod
 
 E = TypeVar('E', bound = Exception)
 def error(func: Callable[..., E]) -> Callable[..., E]:
