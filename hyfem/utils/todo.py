@@ -1,8 +1,11 @@
+__all__ = [
+    "TodoError", 
+    "todo"
+]
+
 class TodoError(NotImplementedError): ...
 
-def todo(*args) -> None:
-    """Raise a TodoError"""
-    raise TodoError(*args)
+def todo(*args) -> None: raise TodoError(*args)
 
 
 def tests():

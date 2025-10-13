@@ -5,7 +5,9 @@ import numbers
 from typing import Any, Mapping, TypeVar, Generic
 from firedrake import SpatialCoordinate, FacetNormal, FunctionSpace, VectorFunctionSpace, BaseFunctionSpace
 from firedrake.mesh import MeshGeometry, MeshTopology
+
 from hyfem.equations.base import Equation
+from hyfem.utils.todo import *
 
 E = TypeVar('E', bound = Equation)
 class Domain(Generic[E], object):
@@ -72,7 +74,7 @@ class Domain(Generic[E], object):
             
             return space
         else:
-            TODO
+            todo("erm")
 
 
     @property
