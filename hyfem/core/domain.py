@@ -29,9 +29,7 @@ class Domain(Generic[E], object):
         self._equation = equation
         
         if not self._has_standard_topology_backend():
-            raise TypeError(
-                f"unsupported mesh topology of type: {type(self._mesh.topology)}"
-            )
+            raise self._unsupported_mesh_topology()
         
         if name is not None:
             self.name = name 
@@ -119,7 +117,7 @@ class Domain(Generic[E], object):
         return self._mesh.name == "firedrake_default"
 
     @error
-    def _var_not_found(self, var_name: str) -> ValueError:
+    def _var_not_found(self, var_name: str) -> Exception:
         return ValueError(
             f"given variable: {var_name} not in {self._equation.__name__}'s\n" +
             f"state variables: {self._equation.state_variables()} \n or \n " +
@@ -127,17 +125,20 @@ class Domain(Generic[E], object):
         )
     
     @error
-    def _space_not_defined(self, *vars: str) -> ValueError:
+    def _space_not_defined(self, *vars: str) -> Exception:
         label = "variable" if len(vars) == 1 else "variables"
         names = ", ".join(vars)
         return ValueError(f"function space not defined for {label}: {names}")
     
     @error
-    def _space_already_defined(self, *vars: str) -> ValueError:
+    def _space_already_defined(self, *vars: str) -> Exception:
         label = "variable" if len(vars) == 1 else "variables"
         details = ", ".join([f"{v} ∈ {self._spaces[v].name}" for v in vars])
         return ValueError(f"function space already defined for {label}: {details}")
 
+    @error
+    def _unsupported_mesh_topology(self) -> Exception:
+        return TypeError(f"unsupported mesh topology: {type(self._mesh.topology)}")
 
 def tests() -> None:
     from firedrake import UnitSquareMesh, ExtrudedMesh, VertexOnlyMesh
