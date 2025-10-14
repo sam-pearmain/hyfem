@@ -9,9 +9,11 @@ from hyfem.utils import *
 class Equation(abc.ABC):
     _discretisation: str
 
-    def __init__(self, discretisation: str = "continuous galerkin"):
-        if discretisation:
-            self._discretisation = discretisation
+    def __init__(self, discretisation: str):
+        self._discretisation = DiscretisationScheme.from_str(discretisation)
+
+        if self._discretisation not in self.supported_discretisation_schemes():
+            raise self._unsupported_discretisation_scheme()
 
     @Property
     def state_variables(self) -> List[str]: 
@@ -47,12 +49,18 @@ class Equation(abc.ABC):
             if (scheme := DiscretisationScheme.from_cls(c)) is not None 
         ]
 
-
     @abc.abstractmethod
     def _state_variables_impl(self) -> List[str]: ...
 
     @abc.abstractmethod
     def _auxiliary_variables_impl(self) -> List[str] | None: ...
+
+    @error
+    def _unsupported_discretisation_scheme(self, scheme: str) -> Exception:
+        return ValueError(
+            f"unsupported discretisation scheme: {scheme} " +
+            f"for {type(self.__name__)}"
+        )
 
 
 def tests():
