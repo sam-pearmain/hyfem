@@ -1,7 +1,8 @@
 import abc
 
-from typing import List, Self, Type
+from typing import List
 
+from hyfem.core.discretisation import DiscontinuousGalerkinMixin, DiscretisationScheme, ContinuousGalerkinMixin
 from hyfem.utils import *
 
 
@@ -39,6 +40,14 @@ class Equation(abc.ABC):
     def n_variables(self) -> int:
         return len(self.variables)
 
+    @ClassMethod
+    def supported_discretisation_schemes(cls) -> List[DiscretisationScheme]:
+        return [
+            scheme for c in cls.__mro__
+            if (scheme := DiscretisationScheme.from_cls(c)) is not None 
+        ]
+
+
     @abc.abstractmethod
     def _state_variables_impl(self) -> List[str]: ...
 
@@ -55,6 +64,12 @@ def tests():
         def _auxiliary_variables_impl(self):
             return []
         
+        def _cg_residual_impl(*args):
+            return super()._cg_residual_impl()
+        
+        def _dg_residual_impl(*args):
+            return super()._dg_residual_impl()
+        
     class Poisson(Equation):
         def _state_variables_impl(self):
             return 
@@ -66,6 +81,9 @@ def tests():
     print(eqn.state_variables)
     print(eqn.variables)
     print(eqn.n_variables)
+    print(eqn.supported_discretisation_schemes())
+
+    eqn2 = Poisson("mixed")
         
 if __name__ == "__main__":
     tests()
