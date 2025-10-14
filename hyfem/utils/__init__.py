@@ -1,2 +1,2 @@
-from decors import *
-from todo import *
+from hyfem.utils.decors import *
+from hyfem.utils.todo import *
