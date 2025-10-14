@@ -10,6 +10,16 @@ if type_checking():
     from hyfem.equations.base import Equation
 
 
+class ContinuousGalerkinMixin(abc.ABC):
+    @abc.abstractmethod
+    def _cg_residual_impl(*args): ...
+
+class DiscontinuousGalerkinMixin(abc.ABC):
+    _numerical_flux: Callable[... , ufl.Form]
+    
+    @abc.abstractmethod
+    def _dg_residual_impl(*args): ...
+
 class DiscretisationScheme(Enum):
     """The enum of all discretisation schemes"""
     ContinuousGalerkin    = auto()
@@ -55,16 +65,6 @@ class Discretisation(Generic[E]):
             raise RuntimeError(f"chosen discretisation scheme: {scheme}")
 
         self._scheme = scheme
-
-class ContinuousGalerkinMixin(abc.ABC):
-    @abc.abstractmethod
-    def _cg_residual_impl(*args): ...
-
-class DiscontinuousGalerkinMixin(abc.ABC):
-    _numerical_flux: Callable[... , ufl.Form]
-    
-    @abc.abstractmethod
-    def _dg_residual_impl(*args): ...
 
 
 def tests():
