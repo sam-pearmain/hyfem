@@ -8,25 +8,25 @@ from firedrake import (
 )
 from firedrake.mesh import MeshGeometry, MeshTopology
 
-from hyfem.equations.base import Equation
+from hyfem.core.equation import Equation
+from hyfem.core.spaces import Spaces
 from hyfem.utils import *
 
-E = TypeVar('E', bound = Equation)
-class Domain(Generic[E], object):
+E = TypeVar('E')
+class Domain:
     """The problem domain"""
     _mesh: MeshGeometry
-    _spaces: Mapping[str, BaseFunctionSpace | None] # should probably be its own class
-    _equation: Equation
+    _spaces: Spaces
+    _equation: Equation | None
 
     def __init__(
             self, 
             mesh: MeshGeometry, 
-            equation: E, 
             name: str | None = None
         ) -> None:
         self._mesh = mesh
-        self._spaces = {v: None for v in equation.variables()}
-        self._equation = equation
+        self._spaces = Spaces()
+        self._equation = None
         
         if not self._has_standard_topology_backend():
             raise self._unsupported_mesh_topology()
@@ -37,31 +37,6 @@ class Domain(Generic[E], object):
             self.name = self.mesh.name
         else:
             self.name = f"_default_{self._equation.__name__}_domain_"
-
-    def assign_function_space(
-            self, 
-            family: str, 
-            degree: int, 
-            var_name: str, 
-            vector_valued: bool = False, 
-        ) -> None:
-        """
-        Assigns a variable from the domain's equation set to a given scalar-valued 
-        function space
-        """
-        if (var_name not in self._equation.state_variables() and 
-            var_name not in self._equation.auxiliary_variables()):
-            raise self._var_not_found(var_name)
-        
-        if vector_valued:
-            V = VectorFunctionSpace(self._mesh, family, degree, name = f"V_{var_name}")
-        else:
-            V = FunctionSpace(self._mesh, family, degree, name = f"V_{var_name}")
-
-        if self._spaces.get(var_name) is not None:
-            raise self._space_already_defined()
-        
-        self._spaces[var_name] = V
     
     def function_space(self, var_name: str | None = None) -> Any:
         """
@@ -86,27 +61,17 @@ class Domain(Generic[E], object):
 
             return MixedFunctionSpace(spaces)
 
-    @Property
     def spatial_coordinates(self) -> SpatialCoordinate:
         return SpatialCoordinate(self._mesh)
 
-    @Property
     def facet_normal(self) -> ufl.FacetNormal:
         return FacetNormal(self._mesh)
     
-    @Property
     def topological_dimensions(self) -> numbers.Integral:
         return self._mesh.topological_dimension()
     
-    @Property
     def geometric_dimensions(self) -> numbers.Integral:
         return self._mesh.geometric_dimension()
-    
-    @check
-    def _all_spaces_assigned(self) -> bool:
-        if any(space is None for space in self._spaces.values()):
-            return False
-        return True
     
     @check
     def _has_standard_topology_backend(self) -> bool:

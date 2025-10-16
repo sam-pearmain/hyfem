@@ -1,15 +1,61 @@
 import abc
+import ufl
 
 from typing import List
 
 from hyfem.core.discretisation import DiscretisationScheme
+from hyfem.core.domain import Domain
 from hyfem.utils import *
 
+# some equation descriptors for later use
+class Linear:
+    def is_linear(self) -> bool:    return True
+    def is_nonlinear(self) -> bool: return False
+
+class Nonlinear:
+    def is_linear(self) -> bool:    return False
+    def is_nonlinear(self) -> bool: return True
+
+class SourceMixin(abc.ABC):
+    _supported_sources: List[ufl.Form]
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self._supported_sources = self._supported_sources_impl()
+
+    @Property
+    def f(self, *args) -> ufl.Form:
+        self._f_impl(*args)
+    
+    @abc.abstractmethod
+    def _f_impl(self, *args) -> ufl.Form: ...
+
+    @abc.abstractmethod
+    def _supported_sources_impl(self) -> List[Callable[..., ufl.Form]]: ...
+
+
+class LinearSourceMixin(SourceMixin, Linear):
+    @Property
+    def f(self, x) -> ufl.Form:
+        self._f_impl(x)
+    
+    @abc.abstractmethod()
+    def _f_impl(self, x) -> ufl.Form: ...
+
+class NonlinearSourceMixin(SourceMixin, Nonlinear):
+    @Property
+    def f(self, u, x) -> ufl.Form:
+        self._f_impl(u, x)
+    
+    @abc.abstractmethod
+    def _f_impl(self, u, x) -> ufl.Form: ...
+
+class TimeDependent: ...
 
 class Equation(abc.ABC):
     _discretisation: DiscretisationScheme
 
-    def __init__(self, discretisation: str):
+    def __init__(self, discretisation: str, domain: Domain):
         self._discretisation = DiscretisationScheme.from_str(discretisation)
 
         if self._discretisation not in self.supported_discretisation_schemes():

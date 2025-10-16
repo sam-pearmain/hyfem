@@ -1,0 +1,21 @@
+mesh = import mesh 
+
+
+with eqn1 = Poisson(mesh, discretisation = "continuous galerkin"):
+    eqn1.set_source(Constant(1.0))
+
+with eqn2 = Poisson(mesh, discretisation = "discontinuous galerkin"):
+    eqn2.set_source(UserDefined(expr = lambda x: 2.0 * x[0] + 2.0 * x[1]))
+    eqn2.set_numerical_flux("roe_flux") # can choose other numerical fluxes
+
+with domain1 = Domain(mesh, eqn1) as d:
+    d.assign_function_space("u", family = "CG", degree = 2)
+
+with domain2 = Domain(mesh, eqn2) as d:
+    d.assign_function_space("u", family = "DG", degree = 2)
+
+
+domain1.solve(solver_settings)
+domain2.solve(solver_settings)
+
+# for time dependent problems we pass the domain off to a TimeStepper class
