@@ -18,4 +18,5 @@ with domain2 = Domain(mesh, eqn2) as d:
 domain1.solve(solver_settings)
 domain2.solve(solver_settings)
 
-# for time dependent problems we pass the domain off to a TimeStepper class
+# design #
+no function space validation

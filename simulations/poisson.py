@@ -1,4 +1,7 @@
-from firedrake import * # type: ignore
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+
+from firedrake import *
 
 n = 128
 mesh = UnitSquareMesh(n, n)
@@ -11,13 +14,13 @@ v = TestFunction(V)
 x, y = SpatialCoordinate(mesh)
 f = Function(V).interpolate(sin(pi * x) * sin(pi * y))
 
-a = dot(grad(v), grad(u)) * dx
-L = v * f * dx
+a = inner(grad(v), grad(u)) * dx
+L = f * v * dx
 
-bc = DirichletBC(V, Constant(0.0), "on_boundary")
+# bc = DirichletBC(V, Constant(0.0), "on_boundary")
 
-u_sol = Function(V)
-solve(a == L, u_sol, bcs = bc)
+u_sol = Function(V, name = "solution")
+solve(a == L, u_sol)
 
 outputfile = VTKFile("poisson.pvd")
 outputfile.write(u_sol)
