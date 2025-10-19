@@ -15,7 +15,7 @@ class Domain:
             eqn: PDE | System, 
             spaces: Spaces,
             name: str | None = None
-        ):
+        ) -> None:
         self._mesh = mesh
         self._spaces = Spaces()
         self._equation = None
