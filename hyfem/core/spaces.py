@@ -67,7 +67,15 @@ class Spaces:
             warnings.warn(f"update_function_space called on {var} but space was previously unassigned")
             self.assign_function_space(var, family, degree, name, vector_valued)
 
-        
+        name = self._spaces[var].label()
+
+        if vector_valued:
+            space = vector_function_space(self._mesh, family, degree, name = name)
+        else:
+            space = function_space(self._mesh, family, degree, name = name)
+
+        # this might cause some problems if we change from CG to DG, for example
+        self._spaces[var] = space
 
     @Property
     def mixed_function_space(self, name: str | None = None) -> MixedFunctionSpace:
@@ -85,10 +93,8 @@ class Spaces:
 
     @Property
     def function_spaces(self) -> Mapping[str, BaseFunctionSpace]:
-        if not self._spaces.v:
-            raise AttributeError(
-                f"no function spaces assigned"
-            )
+        if not self._all_spaces_assigned():
+            raise AttributeError(f"not all function spaces assigned")
         return self._spaces
     
     @Property
@@ -116,7 +122,7 @@ class Spaces:
     def _space_assigned(self, var: str) -> bool:
         """Checks whether the given var already has an assigned function space"""
         self._validate_variable(var)
-        return self._spaces[var] is None
+        return self._spaces[var] is not None
 
     def _all_spaces_assigned(self) -> bool:
         """Checks whether all variables have an assigned function space"""
