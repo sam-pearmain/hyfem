@@ -14,7 +14,7 @@ class Domain:
             mesh: MeshGeometry, 
             eqn: PDE | System, 
             spaces: Spaces,
-            name: str
+            name: str | None = None
         ):
         self._mesh = mesh
         self._spaces = Spaces()
