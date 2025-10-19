@@ -12,7 +12,7 @@ from hyfem.core.pde import (PDE, System)
 from hyfem.firedrake import *
 from hyfem.utils import *
 
-class Spaces:
+class Spaces(object):
     _eqn: PDE | System
     _mesh: MeshGeometry
     _vars: List[str]
@@ -29,7 +29,7 @@ class Spaces:
                 f"eqn must be either of type: {PDE.__name__} or {System.__name__}" + 
                 f", not {type(eqn).__name__}"
             )
-            
+
         self._spaces = {var: None for var in self._vars}
 
     def assign_function_space(
