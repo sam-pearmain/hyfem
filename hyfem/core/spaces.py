@@ -21,6 +21,7 @@ class Spaces:
     def __init__(self, eqn: PDE | System, mesh: MeshGeometry) -> None:
         self._eqn = eqn
         self._mesh = mesh
+
         match type(self._eqn):
             case PDE():    self._vars = [self._eqn.unknown]
             case System(): self._vars = self._eqn.unknowns
@@ -28,6 +29,7 @@ class Spaces:
                 f"eqn must be either of type: {PDE.__name__} or {System.__name__}" + 
                 f", not {type(eqn).__name__}"
             )
+            
         self._spaces = {var: None for var in self._vars}
 
     def assign_function_space(
