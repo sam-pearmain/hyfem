@@ -1,8 +1,7 @@
 
 from firedrake.mesh import (MeshGeometry)
-from hyfem.core.pde import PDE
+from hyfem.core.pde import (PDE, System)
 from hyfem.core.spaces import Spaces
-from hyfem.core.system import System
 
 
 class Domain:
@@ -13,8 +12,9 @@ class Domain:
     def __init__(
             self, 
             mesh: MeshGeometry, 
-            eqn: Equation | System, 
-            spaces: Spaces
+            eqn: PDE | System, 
+            spaces: Spaces,
+            name: str
         ):
         self._mesh = mesh
         self._spaces = Spaces()
