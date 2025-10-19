@@ -1,6 +1,6 @@
 import warnings
 
-from typing import List, Mapping
+from typing import List, Mapping, Tuple
 from numpy.typing import ArrayLike
 
 from firedrake import BaseFunctionSpace, MeshGeometry, Function
@@ -79,6 +79,7 @@ class Spaces:
         self._spaces[var] = space
 
     def get_mixed_function_space(self, *vars: str, name: str | None = None) -> MixedFunctionSpace:
+        """Returns the mixed space for the given vars, if no vars are given returns entire mixed space"""
         if not self._eqn.is_system():
             raise RuntimeError(
                 f"{type(self._eqn).__name__} has only one unknown and " +
@@ -87,49 +88,52 @@ class Spaces:
         
         spaces = self.get_function_spaces(*vars)
         return mixed_function_space(spaces, name) 
+    
+    def get_function_space(self, var: str) -> BaseFunctionSpace:
+        """Returns the function space assigned to the given variable"""
+        self._validate_variable(var)
+        if not self._space_assigned(var):
+            raise AttributeError(f"{var} has no assigned function space")
+        return self._spaces[var]
 
-    def get_function_spaces(self, *vars: str) -> List[BaseFunctionSpace]:
+    def get_function_spaces(self, *vars: str) -> Tuple[BaseFunctionSpace, ...]:
+        """Gets the function spaces for the given vars, if no vars given returns all spaces"""
         if not vars:
             if not self._all_spaces_assigned():
                 raise AttributeError(f"not all function spaces assigned")
-            return [self._spaces[var] for var in self._vars]
+            return tuple(self._spaces[var] for var in self._vars)
 
-        spaces = []
-
-        for var in vars:
-            space = self.get_function_space(var)
-            spaces.append(space)
-
-        return spaces
-    
-    def get_function_space(self, var: str) -> BaseFunctionSpace:
-        self._validate_variable(var)
-        return self._spaces[var]
+        return tuple(self.get_function_space(var) for var in vars)
     
     def get_trial_function(self, var: str) -> Coargument | Argument:
+        """Creates a trial function in the given var's function space"""
         self._validate_variable(var)
         return trial_function(self._spaces[var])
     
-    def get_trial_functions(self, *vars: str) -> List[Coargument] | List[Argument]:
+    def get_trial_functions(self, *vars: str) -> Tuple[Coargument, ...] | Tuple[Argument, ...]:
+        """Creates a list of trial functions in the given vars' function spaces"""
         spaces = self.get_function_spaces(*vars)
-        return [trial_function(space) for space in spaces]
+        return tuple(trial_function(space) for space in spaces)
     
     def get_test_function(self, var: str) -> Coargument | Argument:
+        """Creates a test function in the given var's function space"""
         self._validate_variable(var)
         return test_function(self._spaces[var])
     
-    def get_test_functions(self, *vars: str) -> List[Coargument] | List[Argument]:
+    def get_test_functions(self, *vars: str) -> Tuple[Coargument, ...] | Tuple[Argument, ...]:
+        """Creates a list of test functions in the given vars' function spaces"""
         spaces = self.get_function_spaces(*vars)
-        return [test_function(space) for space in spaces]
+        return tuple(test_function(space) for space in spaces)
 
     def create_function(self, var: str, val: ArrayLike | None = None, name: str | None = None) -> Function:
         """Creates and returns a Firedrake Function for the given variable"""
         space = self.get_function_space(var)
         return Function(space, val = val, name = name)
     
-    def create_functions(self, *vars: str) -> List[Function]:
+    def create_functions(self, *vars: str) -> Tuple[Function]:
+        """Creates and returns a tuple of Firedrake Functions in the given vars' function spaces"""
         spaces = self.get_function_spaces(*vars)
-        return [Function(space) for space in spaces]
+        return tuple(Function(space) for space in spaces)
 
     def _validate_variable(self, var: str) -> None:
         """Validates whether the given variable exists within the spaces"""
@@ -140,7 +144,6 @@ class Spaces:
 
     def _space_assigned(self, var: str) -> bool:
         """Checks whether the given var already has an assigned function space"""
-        self._validate_variable(var)
         return self._spaces[var] is not None
 
     def _all_spaces_assigned(self) -> bool:
