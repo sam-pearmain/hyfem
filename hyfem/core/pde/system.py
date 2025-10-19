@@ -31,4 +31,6 @@ class System(abc.ABC):
         unknowns = []
         for eqn in self._equations:
             if eqn.unknown not in unknowns: unknowns.append(eqn.unknown)
+
+    def is_system(self) -> bool: return True
     
