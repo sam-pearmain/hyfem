@@ -4,11 +4,13 @@ import warnings
 from typing import List, Type, Self
 
 from hyfem.core.pde import PDE
-from hyfem.core.pde.traits import Unclosed
+from hyfem.core.pde.traits import Solvable, Unclosed
+from hyfem.core.spaces import Spaces
 
 from hyfem.utils import *
 
-class System(abc.ABC):
+class System(Solvable):
+    _spaces: Spaces
     _equations: List[PDE] | None = None
 
     def __init__(self, eqns: List[PDE]):

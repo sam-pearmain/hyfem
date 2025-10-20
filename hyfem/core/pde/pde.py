@@ -1,16 +1,17 @@
 import abc
 import ufl
 
+from hyfem.core.pde.system import Solvable
 from hyfem.core.spaces import Spaces
 from hyfem.utils import *
 
-class PDE(abc.ABC):
+class Equation(Solvable):
     """
-    A closed-form PDE with a single unknown variable
+    A closed-form equation with a single unknown variable
     """
-    _spaces: Spaces
+    _spaces: Spaces | None
 
-    def __init__(self, spaces: Spaces) -> None:
+    def __init__(self) -> None:
         super().__init__()
 
     @Property
@@ -27,6 +28,8 @@ class PDE(abc.ABC):
         """The spatial residual, F(u)"""
         return self._spatial_residual_impl()
         
+
+    
     def is_system(self) -> bool: return False
 
     abc.abstractmethod

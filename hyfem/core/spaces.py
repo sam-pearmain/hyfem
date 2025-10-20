@@ -104,7 +104,7 @@ class Spaces(object):
     def get_function_spaces(self, *vars: str) -> Tuple[BaseFunctionSpace, ...]:
         """Gets the function spaces for the given vars, if no vars given returns all spaces"""
         if not vars:
-            if not self._all_spaces_assigned():
+            if not self.all_spaces_assigned():
                 raise AttributeError(f"not all function spaces assigned")
             return tuple(self._spaces[var] for var in self._vars)
 
@@ -140,6 +140,10 @@ class Spaces(object):
         spaces = self.get_function_spaces(*vars)
         return tuple(Function(space) for space in spaces)
 
+    def all_spaces_assigned(self) -> bool:
+        """Checks whether all variables have an assigned function space"""
+        return all(space is not None for space in self._spaces.values())
+
     def _validate_variable(self, var: str) -> None:
         """Validates whether the given variable exists within the spaces"""
         if var not in self._spaces.keys():
@@ -150,7 +154,3 @@ class Spaces(object):
     def _space_assigned(self, var: str) -> bool:
         """Checks whether the given var already has an assigned function space"""
         return self._spaces[var] is not None
-
-    def _all_spaces_assigned(self) -> bool:
-        """Checks whether all variables have an assigned function space"""
-        return all(space is not None for space in self._spaces.values())
