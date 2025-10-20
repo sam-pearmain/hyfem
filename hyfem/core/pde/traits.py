@@ -10,7 +10,13 @@ class Solvable(abc.ABC):
         super().__init__()
         self._spaces = None
 
-    def is_finalised(self) -> bool:
+    def assign_function_spaces(self, spaces: Spaces) -> None:
+        supported_eqn, _ = spaces.defined_on_str()
+        if not supported_eqn == type(self).__name__:
+            raise ValueError(f"attempted to assign <Spaces ({supported_eqn})> object to {type(self).__name__}")
+        self._spaces = spaces
+
+    def has_function_spaces(self) -> bool:
         return self._spaces is not None
 
     def has_defined_function_spaces(self) -> bool:

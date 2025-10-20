@@ -9,6 +9,7 @@ from firedrake.ufl_expr import Argument, Coargument
 from ufl.argument import Coargument
 
 from hyfem.core.pde import (PDE, System)
+from hyfem.core.pde.traits import Solvable
 from hyfem.firedrake import *
 from hyfem.utils import *
 
@@ -80,8 +81,11 @@ class Spaces(object):
         # this might cause some problems if we change from CG to DG, for example
         self._spaces[var] = space
 
-    def defined_on(self) -> Tuple[PDE | System, MeshGeometry]:
+    def defined_on(self) -> Tuple[Solvable, MeshGeometry]:
         return tuple(self._eqn, self._mesh)
+
+    def defined_on_str(self) -> Tuple[str, str]:
+        return tuple(type(self._eqn).__name__, type(self._mesh).__name__)
 
     def get_mixed_function_space(self, *vars: str, name: str | None = None) -> MixedFunctionSpace:
         """Returns the mixed space for the given vars, if no vars are given returns entire mixed space"""
