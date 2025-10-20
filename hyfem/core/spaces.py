@@ -80,6 +80,9 @@ class Spaces(object):
         # this might cause some problems if we change from CG to DG, for example
         self._spaces[var] = space
 
+    def defined_on(self) -> Tuple[PDE | System, MeshGeometry]:
+        return tuple(self._eqn, self._mesh)
+
     def get_mixed_function_space(self, *vars: str, name: str | None = None) -> MixedFunctionSpace:
         """Returns the mixed space for the given vars, if no vars are given returns entire mixed space"""
         if not self._eqn.is_system():

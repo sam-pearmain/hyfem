@@ -1,16 +1,36 @@
 import abc
+import ufl
 
+from hyfem.core.spaces import Spaces
 from hyfem.utils import *
 
 class PDE(abc.ABC):
     """
     A closed-form PDE with a single unknown variable
     """
+    _spaces: Spaces
+
+    def __init__(self, spaces: Spaces) -> None:
+        super().__init__()
 
     @Property
-    def unknown(self) -> str: return self._unknown_impl()
+    def unknowns(self) -> str: 
+        return self._unknown_impl()
 
+    @Property
+    def F(self) -> ufl.Form:
+        """The spatial residual, F(u)"""
+        return self._spatial_residual_impl()
+    
+    @Property
+    def spatial_residual(self) -> ufl.Form:
+        """The spatial residual, F(u)"""
+        return self._spatial_residual_impl()
+        
     def is_system(self) -> bool: return False
 
     abc.abstractmethod
     def _unknown_impl(self) -> str: ...
+
+    abc.abstractmethod
+    def _spatial_residual_impl(self) -> ufl.Form: ...
