@@ -9,7 +9,7 @@ from hyfem.core.pde.traits import Unclosed
 from hyfem.utils import *
 
 class System(abc.ABC):
-    _equations: List[PDE] # we need instances
+    _equations: List[PDE] | None = None
 
     def __init__(self, eqns: List[PDE]):
         super().__init__()
