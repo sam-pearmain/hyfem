@@ -8,7 +8,7 @@ from firedrake import (
 )
 from firedrake.mesh import MeshGeometry, MeshTopology
 
-from hyfem.core.pde.pde import Equation
+from hyfem.core.eqns.eqn import Equation
 from hyfem.core.spaces import Spaces
 from hyfem.utils import *
 

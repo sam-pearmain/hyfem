@@ -3,15 +3,15 @@ import warnings
 
 from typing import List, Type, Self
 
-from hyfem.core.pde import PDE
-from hyfem.core.pde.traits import Solvable, Unclosed
+from hyfem.core.eqns import PDE
+from hyfem.core.eqns.traits import Solvable, Unclosed
 from hyfem.core.spaces import Spaces
 
 from hyfem.utils import *
 
 class System(Solvable):
-    _spaces: Spaces
-    _equations: List[PDE] | None = None
+    _spaces: Spaces | None
+    _equations: List[PDE]
 
     def __init__(self, eqns: List[PDE]):
         super().__init__()

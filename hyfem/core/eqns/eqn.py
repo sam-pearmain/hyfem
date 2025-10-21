@@ -1,8 +1,8 @@
 import abc
 import ufl
 
-from hyfem.core.pde.system import Solvable
 from hyfem.core.spaces import Spaces
+from hyfem.core.eqns.traits import Solvable
 from hyfem.utils import *
 
 class Equation(Solvable):
@@ -28,8 +28,6 @@ class Equation(Solvable):
         """The spatial residual, F(u)"""
         return self._spatial_residual_impl()
         
-
-    
     def is_system(self) -> bool: return False
 
     abc.abstractmethod

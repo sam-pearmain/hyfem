@@ -1,24 +1,27 @@
 
+from typing import TypeVar, Generic
+
 from firedrake.mesh import (MeshGeometry, MeshTopology)
-from hyfem.core.pde import (PDE, System)
+from hyfem.core.eqns import Solvable
 from hyfem.core.spaces import Spaces
 from hyfem.utils import *
 
-
-class Domain:
+E = TypeVar('E', bound = Solvable)
+class Domain(Generic[E]):
     _mesh: MeshGeometry
     _spaces: Spaces
-    _equation: PDE | System
+    _equation: E
 
     def __init__(
             self, 
             mesh: MeshGeometry, 
-            eqn: PDE | System, 
+            eqn: E, 
             name: str | None = None
         ) -> None:
         self._mesh = mesh
         self._spaces = Spaces(eqn, mesh)
         self._equation = eqn
+        self._equation.assign
         
         if not self._has_standard_topology_backend():
             raise TypeError(f"unsupported mesh topology: {type(self._mesh.topology)}")

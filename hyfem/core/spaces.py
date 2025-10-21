@@ -1,6 +1,6 @@
 import warnings
 
-from typing import List, Mapping, Tuple
+from typing import List, Mapping, Tuple, Generic, TypeVar
 from numpy.typing import ArrayLike
 
 from firedrake import BaseFunctionSpace, MeshGeometry, Function
@@ -8,29 +8,27 @@ from firedrake.functionspaceimpl import MixedFunctionSpace
 from firedrake.ufl_expr import Argument, Coargument
 from ufl.argument import Coargument
 
-from hyfem.core.pde import (PDE, System)
-from hyfem.core.pde.traits import Solvable
+from hyfem.core.eqns import (Equation, System)
+from hyfem.core.eqns.traits import Solvable
 from hyfem.firedrake import *
 from hyfem.utils import *
 
-class Spaces(object):
-    _eqn: PDE | System
+E = TypeVar('E', bound = Solvable) # i.e. a generic equation or system of equations
+class Spaces(Generic[E], object):
+    _eqn: E
     _mesh: MeshGeometry
     _vars: List[str]
     _spaces: Mapping[str, BaseFunctionSpace | None]
 
-    def __init__(self, eqn: PDE | System, mesh: MeshGeometry) -> None:
+    def __init__(self, eqn: E, mesh: MeshGeometry) -> None:
+        if not isinstance(eqn, Solvable):
+            raise TypeError(
+                f"eqn must inherit from ABC: {Solvable.__name__}," + 
+                f"{type(eqn).__name__} does not"
+            )
+        
         self._eqn = eqn
         self._mesh = mesh
-
-        match type(self._eqn):
-            case PDE():    self._vars = [self._eqn.unknown]
-            case System(): self._vars = self._eqn.unknowns
-            case _: raise TypeError(
-                f"eqn must be either of type: {PDE.__name__} or {System.__name__}" + 
-                f", not {type(eqn).__name__}"
-            )
-
         self._spaces = {var: None for var in self._vars}
 
     def assign_function_space(
