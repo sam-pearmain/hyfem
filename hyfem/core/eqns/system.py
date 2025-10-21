@@ -3,17 +3,17 @@ import warnings
 
 from typing import List, Type, Self
 
-from hyfem.core.eqns import PDE
-from hyfem.core.eqns.traits import Solvable, Unclosed
+from hyfem.core.eqns.eqn import LinearEquation
+from hyfem.core.eqns.traits import LinearSolveable, NonlinearSolveable
 from hyfem.core.spaces import Spaces
 
 from hyfem.utils import *
 
-class System(Solvable):
+class LinearCoupledEquations(LinearSolveable):
     _spaces: Spaces | None
-    _equations: List[PDE]
+    _equations: List[LinearEquation]
 
-    def __init__(self, eqns: List[PDE]):
+    def __init__(self, eqns: List[LinearEquation]):
         super().__init__()
         self._equations = eqns
 
@@ -28,8 +28,7 @@ class System(Solvable):
         
         return cls(eqns)
 
-    @Property
-    def unknowns(self) -> List[str]:
+    def _unknowns_impl(self) -> List[str]:
         unknowns = []
         for eqn in self._equations:
             if eqn.unknown not in unknowns: unknowns.append(eqn.unknown)

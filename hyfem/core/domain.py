@@ -10,7 +10,7 @@ E = TypeVar('E', bound = Solvable)
 class Domain(Generic[E]):
     _mesh: MeshGeometry
     _spaces: Spaces
-    _equation: E
+    _eqn: E
 
     def __init__(
             self, 
@@ -20,8 +20,8 @@ class Domain(Generic[E]):
         ) -> None:
         self._mesh = mesh
         self._spaces = Spaces(eqn, mesh)
-        self._equation = eqn
-        self._equation.assign
+        self._eqn = eqn
+        self._eqn.assign
         
         if not self._has_standard_topology_backend():
             raise TypeError(f"unsupported mesh topology: {type(self._mesh.topology)}")
@@ -31,10 +31,17 @@ class Domain(Generic[E]):
         elif not self._has_firedrake_default_name():
             self.name = self.mesh.name
         else:
-            self.name = f"_default_{self._equation.__name__}_domain_"
+            self.name = f"_default_{self._eqn.__name__}_domain_"
 
     def _has_standard_topology_backend(self) -> bool:
         return type(self._mesh.topology) is MeshTopology
 
     def _has_firedrake_default_name(self) -> bool:
         return self._mesh.name == "firedrake_default"
+   
+    
+def tests():
+    pass
+
+if __name__ == "__main__":
+    tests()

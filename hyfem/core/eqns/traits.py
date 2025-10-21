@@ -2,6 +2,8 @@ import abc
 import ufl
 import ufl.equation
 
+from typing import List
+
 from hyfem.core.spaces import Spaces
 from hyfem.utils import Property
 
@@ -22,14 +24,15 @@ class Solvable(abc.ABC):
     def ufl_equation(self) -> ufl.equation.Equation:
         return self._ufl_equation_impl()
 
+    @Property
+    def unknowns(self) -> List[str]:
+        return self._unknowns_impl()
+
     def assign_function_spaces(self, spaces: Spaces) -> None:
         supported_eqn, _ = spaces.defined_on_str()
         if not supported_eqn == type(self).__name__:
             raise ValueError(f"attempted to assign <Spaces ({supported_eqn})> object to {type(self).__name__}")
         self._spaces = spaces
-
-    def is_system(self) -> bool:
-        return self._is_system_impl()
 
     def has_function_spaces(self) -> bool:
         return self._spaces is not None
@@ -52,7 +55,8 @@ class Solvable(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def _is_system_impl(self) -> bool: ...
+    def _unknowns_impl(self) -> List[str]:
+        ...
 
 class LinearSolveable(Solvable):
     @Property
@@ -105,4 +109,8 @@ class NonlinearSolveable(Solvable):
         ...
 
 class TimeDependent(abc.ABC):
+    """A mixin for solvables with a time dimension"""
+    ...
+
+class PsuedotimeMixin(abc.ABC):
     ...
