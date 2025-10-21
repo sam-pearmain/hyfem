@@ -28,6 +28,9 @@ class Solvable(abc.ABC):
     def unknowns(self) -> List[str]:
         return self._unknowns_impl()
 
+    def is_system_of_equations(self) -> bool:
+        return self._is_system_of_equations_impl()
+
     def assign_function_spaces(self, spaces: Spaces) -> None:
         supported_eqn, _ = spaces.defined_on_str()
         if not supported_eqn == type(self).__name__:
@@ -56,6 +59,10 @@ class Solvable(abc.ABC):
 
     @abc.abstractmethod
     def _unknowns_impl(self) -> List[str]:
+        ...
+
+    @abc.abstractmethod
+    def _is_system_of_equations_impl(self) -> bool:
         ...
 
 class LinearSolveable(Solvable):
