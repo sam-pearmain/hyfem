@@ -1,6 +1,6 @@
 from firedrake import (UnitIntervalMesh, UnitSquareMesh, UnitCubeMesh, 
                        FunctionSpace, VectorFunctionSpace, MixedFunctionSpace, 
-                       TestFunction, TrialFunction)
+                       TestFunction, TrialFunction, FacetNormal)
 
 __all__ = [
     "unit_interval_mesh",
@@ -11,6 +11,7 @@ __all__ = [
     "mixed_function_space",
     "test_function",
     "trial_function",
+    "facet_normal", 
 ]
 
 unit_interval_mesh = UnitIntervalMesh
@@ -21,3 +22,4 @@ vector_function_space = VectorFunctionSpace
 mixed_function_space = MixedFunctionSpace
 test_function = TestFunction
 trial_function = TrialFunction
+facet_normal = FacetNormal
