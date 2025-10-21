@@ -57,19 +57,34 @@ class Solvable(abc.ABC):
         ...
 
 class LinearMixin(abc.ABC):
+    """A mixin for linear equations"""
     def is_linear(self)    -> bool: return True
     def is_nonlinear(self) -> bool: return False
 
+    @abc.abstractmethod
+    def _bilinear_form_impl(self) -> ufl.Form:
+        ...
+
+    @abc.abstractmethod
+    def _linear_functional_impl(self) -> ufl.Form:
+        ...
+
 class NonlinearMixin(abc.ABC):
+    """A mixin for nonlinear equations"""
     def is_linear(self)    -> bool: return False
     def is_nonlinear(self) -> bool: return True
+
+    @abc.abstractmethod
+    def _nonlinear_form_impl(self) -> ufl.Form:
+        ...
 
 Linear = LinearMixin
 Nonlinear = NonlinearMixin
 
 class TimeMixin(abc.ABC):
-    """A mixin for solvables with a time dimension"""
+    """A mixin for equations with a time dimension"""
     ...
 
 class PsuedotimeMixin(abc.ABC):
+    """A mixin for equatoins with a psuedo-time dimension"""
     ...
