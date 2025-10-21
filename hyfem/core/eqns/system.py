@@ -1,30 +1,27 @@
 import abc
 
-from typing import List
+from typing import Generic, List
 
-from hyfem.core.eqns.eqn import LinearEquation
-from hyfem.core.eqns.traits import LinearSolveable, NonlinearSolveable
-from hyfem.core.spaces import Spaces
-
+from hyfem.core.eqns import Solvable
+from hyfem.core.eqns.eqn import Equation, LinearEquation, Nonlinear
+from hyfem.core.eqns.traits import Linear, Nonlinear, Solvable 
 from hyfem.utils import *
 
-class CoupledEquations(abc.ABC):
-    ...
+E = TypeVar('E', bound = Equation)
+class CoupledEquations(Generic[E], Solvable):
+    _equations: List[E]
 
-class LinearCoupledEquations(LinearSolveable, CoupledEquations):
-    _spaces: Spaces | None
-    _equations: List[LinearEquation]
+    def _is_system_of_equations_impl(self) -> bool:
+        return True
 
-    def __init__(self, eqns: List[LinearEquation]):
+LE = TypeVar('LE', bound = LinearEquation)
+class LinearCoupledEquations(Linear, CoupledEquations[LE]):
+    _equations: List[LE]
+
+    def __init__(self, eqns: List[LE]):
         super().__init__()
         self._equations = eqns
 
-    def _unknowns_impl(self) -> List[str]:
-        unknowns = []
-        for eqn in self._equations:
-            if eqn.unknown not in unknowns: unknowns.append(eqn.unknown)
-
-    def is_system(self) -> bool: return True
-    
-class NonlinearCoupledEquations(NonlinearSolveable, CoupledEquations):
+E = TypeVar('E', bound = Equation)
+class NonlinearCoupledEquations(Nonlinear, CoupledEquations[E]):
     ...

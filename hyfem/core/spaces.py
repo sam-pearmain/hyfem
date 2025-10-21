@@ -13,14 +13,14 @@ from hyfem.core.eqns.traits import Solvable
 from hyfem.firedrake import *
 from hyfem.utils import *
 
-E = TypeVar('E', bound = Solvable) # i.e. a generic equation or system of equations
-class Spaces(Generic[E], object):
-    _eqn: E
+S = TypeVar('S', bound = Solvable) # i.e. a generic equation or system of equations
+class Spaces(Generic[S], object):
+    _eqn: S
     _mesh: MeshGeometry
     _vars: List[str]
     _spaces: Mapping[str, BaseFunctionSpace | None]
 
-    def __init__(self, eqn: E, mesh: MeshGeometry) -> None:
+    def __init__(self, eqn: S, mesh: MeshGeometry) -> None:
         if not isinstance(eqn, Solvable):
             raise TypeError(
                 f"eqn must inherit from ABC: {Solvable.__name__}," + 

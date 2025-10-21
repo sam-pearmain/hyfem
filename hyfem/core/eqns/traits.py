@@ -4,17 +4,17 @@ import ufl.equation
 
 from typing import List
 
-from hyfem.core.spaces import Spaces
-from hyfem.utils import Property
+from hyfem.core.domain import Domain
+from hyfem.utils import *
 
 
 class Solvable(abc.ABC):
     """The abstract base class for any equation or system of equations"""
-    _spaces: Spaces | None
+    _domain: Domain | None
 
     def __init__(self) -> None:
         super().__init__()
-        self._spaces = None
+        self._domain = None
 
     @Property
     def ufl_form(self) -> ufl.Form: 
@@ -31,23 +31,14 @@ class Solvable(abc.ABC):
     def is_system_of_equations(self) -> bool:
         return self._is_system_of_equations_impl()
 
-    def assign_function_spaces(self, spaces: Spaces) -> None:
-        supported_eqn, _ = spaces.defined_on_str()
-        if not supported_eqn == type(self).__name__:
-            raise ValueError(f"attempted to assign <Spaces ({supported_eqn})> object to {type(self).__name__}")
-        self._spaces = spaces
+    def assign_domain(self, domain: Domain) -> None:
+        domain_equations = type(self._domain.equation).__name__
+        if not domain_equations == type(self).__name__:
+            raise ValueError(f"attempted to assign <Spaces ({domain_equations})> object to {type(self).__name__}")
+        self._domain = domain
 
-    def has_function_spaces(self) -> bool:
-        return self._spaces is not None
-
-    def has_defined_function_spaces(self) -> bool:
-        if not self.has_function_spaces():
-            raise RuntimeError(f"{type(self).__name__} has not been assigned a {Spaces.__name__} object")
-        return self._spaces.all_spaces_assigned()
-
-    def _ensure_defined_function_spaces(self) -> None:
-        if not self.has_defined_function_spaces():
-            raise RuntimeError(f"{type(self).__name__} has undefined function spaces") 
+    def has_domain(self) -> bool:
+        return self._domain is not None
 
     @abc.abstractmethod
     def _ufl_form_impl(self) -> ufl.Form: 
@@ -65,57 +56,18 @@ class Solvable(abc.ABC):
     def _is_system_of_equations_impl(self) -> bool:
         ...
 
-class LinearSolveable(Solvable):
-    @Property
-    def a(self) -> ufl.Form:
-        return self._bilinear_form_impl()
-    
-    @Property
-    def L(self) -> ufl.Form:
-        return self._linear_functional_impl()
+class LinearMixin(abc.ABC):
+    def is_linear(self)    -> bool: return True
+    def is_nonlinear(self) -> bool: return False
 
-    @Property
-    def bilinear_form(self) -> ufl.Form:
-        return self._bilinear_form_impl()
-    
-    @Property
-    def linear_functional(self) -> ufl.Form:
-        return self._linear_functional_impl()
+class NonlinearMixin(abc.ABC):
+    def is_linear(self)    -> bool: return False
+    def is_nonlinear(self) -> bool: return True
 
-    @abc.abstractmethod
-    def _bilinear_form_impl(self) -> ufl.Form:
-        ...
+Linear = LinearMixin
+Nonlinear = NonlinearMixin
 
-    @abc.abstractmethod
-    def _linear_functional_impl(self) -> ufl.Form:
-        ...
-
-    def _ufl_form_impl(self) -> ufl.Form:
-        return self.a - self.L
-    
-    def _ufl_equation_impl(self) -> ufl.equation.Equation:
-        return self.a == self.L
-
-class NonlinearSolveable(Solvable):
-    @Property
-    def F(self) -> ufl.Form:
-        return self._nonlinear_form_impl()
-
-    @Property
-    def nonlinear_form(self) -> ufl.Form:
-        return self._nonlinear_form_impl()
-
-    def _ufl_form_impl(self) -> ufl.Form:
-        return self._nonlinear_form_impl()
-    
-    def _ufl_equation_impl(self) -> ufl.equation.Equation:
-        return self.F == 0
-
-    @abc.abstractmethod
-    def _nonlinear_form_impl(self) -> ufl.Form:
-        ...
-
-class TimeDependent(abc.ABC):
+class TimeMixin(abc.ABC):
     """A mixin for solvables with a time dimension"""
     ...
 

@@ -6,11 +6,12 @@ from hyfem.core.eqns import Solvable
 from hyfem.core.spaces import Spaces
 from hyfem.utils import *
 
+
 E = TypeVar('E', bound = Solvable)
 class Domain(Generic[E]):
     _mesh: MeshGeometry
     _spaces: Spaces
-    _eqn: E
+    _equation: E
 
     def __init__(
             self, 
@@ -20,8 +21,8 @@ class Domain(Generic[E]):
         ) -> None:
         self._mesh = mesh
         self._spaces = Spaces(eqn, mesh)
-        self._eqn = eqn
-        self._eqn.assign_function_spaces(self._spaces)
+        self._equation = eqn
+        self._equation.assign_domain(self._spaces)
         
         if not self._has_standard_topology_backend():
             raise TypeError(f"unsupported mesh topology: {type(self._mesh.topology)}")
@@ -31,7 +32,15 @@ class Domain(Generic[E]):
         elif not self._has_firedrake_default_name():
             self.name = self.mesh.name
         else:
-            self.name = f"_default_{self._eqn.__name__}_domain_"
+            self.name = f"_default_{self._equation.__name__}_domain_"
+
+    @Property
+    def spaces(self) -> Spaces[E]:
+        return self._spaces
+
+    @Property
+    def equation(self) -> E:
+        return self._equation
 
     def _has_standard_topology_backend(self) -> bool:
         return type(self._mesh.topology) is MeshTopology
