@@ -3,15 +3,14 @@ import ufl
 from typing import Mapping
 from firedrake import *
 
-from hyfem.core.discretisation import ContinuousGalerkinMixin
-from hyfem.equations.base import Equation
+from hyfem.core.eqns.eqn import LinearEquation
 from hyfem.utils import *
 
 if type_checking():
     from hyfem.core.domain import Domain
 
 
-class Poisson(Equation, ContinuousGalerkinMixin, SourceTerm):
+class Poisson(LinearEquation):
     def __init__(self, discretisation, f: ufl.Form | None = None):
         super().__init__(discretisation)
     

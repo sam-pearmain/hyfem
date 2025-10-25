@@ -88,3 +88,18 @@ class TimeMixin(abc.ABC):
 class PsuedotimeMixin(abc.ABC):
     """A mixin for equatoins with a psuedo-time dimension"""
     ...
+
+class SourceMixin(abc.ABC):
+    """A mixin for equations with source terms"""
+    ...
+
+class ContinuousGalerkinMixin(abc.ABC):
+    """A mixin for forms that derive from a continuous function space"""
+    ...
+
+class DiscontinuousGalerkinMixin(abc.ABC):
+    """A mixin for forms that derive from a discontinuous function space"""
+    ...
+
+class PetrovGalerkinMixin(abc.ABC):
+    """A mixin for forms where test and trial functions are selected from different function spaces"""

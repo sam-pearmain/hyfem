@@ -1,9 +1,11 @@
+import abc
+
 from enum import Enum, auto
 from typing import Self, Type
 
 from hyfem.utils import *
 
-class Discretisation(Enum):
+class DiscretisationScheme(Enum):
     """The enum of all discretisation schemes"""
     ContinuousGalerkin    = auto()
     DiscontinuousGalerkin = auto()
@@ -30,3 +32,28 @@ class Discretisation(Enum):
             case self.ContinuousGalerkin:    return "cg"
             case self.DiscontinuousGalerkin: return "dg"
             case self.PetrovGalerkin:        return "pg"
+
+class DiscretisationMixin(abc.ABC):
+    @Property
+    def discretisation_scheme(self) -> DiscretisationScheme:
+        return self._discretisation_scheme_impl()
+    
+    @abc.abstractmethod
+    def _discretisation_scheme_impl(self) -> DiscretisationScheme:
+        ...
+
+class ContinuousGalerkinMixin(DiscretisationMixin):
+    """A mixin for forms that derive from a continuous function space"""
+    def _discretisation_scheme_impl(self) -> DiscretisationScheme:
+        return DiscretisationScheme.from_str("cg")
+
+class DiscontinuousGalerkinMixin(DiscretisationMixin):
+    """A mixin for forms that derive from a discontinuous function space"""
+    def _discretisation_scheme_impl(self) -> DiscretisationScheme:
+        return DiscretisationScheme.from_str("dg")
+
+class PetrovGalerkinMixin(DiscretisationMixin):
+    """A mixin for forms where test and trial functions are selected from different function spaces"""
+    def _discretisation_scheme_impl(self) -> DiscretisationScheme:
+        return DiscretisationScheme.from_str("pg")
+        

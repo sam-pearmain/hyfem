@@ -45,19 +45,19 @@ class Equation(Solvable):
 class LinearEquation(Linear, Equation):
     @Property
     def a(self) -> ufl.Form:
-        return self._bilinear_form_dispatch()
+        return self._bilinear_form_impl()
     
     @Property
     def L(self) -> ufl.Form:
-        return self._linear_functional_dispatch()
+        return self._linear_functional_impl()
 
     @Property
     def bilinear_form(self) -> ufl.Form:
-        return self._bilinear_form_dispatch()
+        return self._bilinear_form_impl()
     
     @Property
     def linear_functional(self) -> ufl.Form:
-        return self._linear_functional_dispatch()
+        return self._linear_functional_impl()
 
     def _ufl_form_impl(self) -> ufl.Form:
         return self.a - self.L
@@ -65,29 +65,29 @@ class LinearEquation(Linear, Equation):
     def _ufl_equation_impl(self) -> ufl.equation.Equation:
         return self.a == self.L
 
-    def _bilinear_form_dispatch(self) -> ufl.Form:
-        method = f"_{self.discretisation_scheme.abbrev()}_bilinear_form_impl"
-        return getattr(self, method)()
+    @abc.abstractmethod
+    def _bilinear_form_impl(self) -> ufl.Form:
+        ...
 
-    def _linear_functional_dispatch(self) -> ufl.Form:
-        method = f"_{self.discretisation_scheme.abbrev()}_linear_functional_impl"
-        return getattr(self, method)()
+    @abc.abstractmethod
+    def _linear_functional_impl(self) -> ufl.Form:
+        ...
 
 class NonlinearEquation(Nonlinear, Equation):
     @Property
     def F(self) -> ufl.Form:
-        return self._nonlinear_form_dispatch()
+        return self._nonlinear_form_impl()
 
     @Property
     def nonlinear_form(self) -> ufl.Form:
-        return self._nonlinear_form_dispatch()
+        return self._nonlinear_form_impl()
 
     def _ufl_form_impl(self) -> ufl.Form:
-        return self._nonlinear_form_dispatch()
+        return self._nonlinear_form_impl()
     
     def _ufl_equation_impl(self) -> ufl.equation.Equation:
         return self.F == 0
 
-    def _nonlinear_form_dispatch(self) -> ufl.Form:
-        method = f"_{self.discretisation_scheme.abbrev()}_nonlinear_form_impl"
-        return getattr(self, method)()
+    @abc.abstractmethod
+    def _nonlinear_form_impl(self) -> ufl.Form:
+        ...
