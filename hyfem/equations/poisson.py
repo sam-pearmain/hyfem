@@ -1,32 +1,47 @@
-import ufl
-
-from typing import Mapping
 from firedrake import *
 
+from hyfem.core.discretisation import ContinuousGalerkinMixin
 from hyfem.core.eqns.eqn import LinearEquation
+from hyfem.core.eqns.traits import SourceMixin
+from hyfem.firedrake import trial_function, test_function
 from hyfem.utils import *
 
 if type_checking():
     from hyfem.core.domain import Domain
 
 
-class Poisson(LinearEquation):
-    def __init__(self, discretisation, f: ufl.Form | None = None):
-        super().__init__(discretisation)
+class Poisson(LinearEquation, ContinuousGalerkinMixin, SourceMixin):
+    def __init__(self):
+        super().__init__()
     
-    def _cg_state_variables_impl(self):
-        return ["u"]
+    def _unknowns_impl(self):
+        return ['U']
     
-    def _cg_auxiliary_variables_impl(self):
-        return None
+    def _bilinear_form_impl(self):
+        u = self.domain.spaces.get_trial_function('U')
+        v = self.domain.spaces.get_test_function('U')
+        return inner(grad(u), grad(v)) * dx
+
+    def _linear_functional_impl(self):
+        v = self.domain.spaces.get_test_function('U')
+        return inner(self.f, v) * dx
     
-    def _cg_form_impl(self, domain: 'Domain'):
-        V = domain.solution_space()
+    def _f_impl(self):
+        V = self.domain.spaces.get_function_space('U')
+        x, y = self.domain.spatial_coordinates
+        return Function(V).interpolate(x + y)
 
-        u = TrialFunction(V)
-        v = TestFunction(V)
-        n = domain.facet_normal()
+def tests():
+    from hyfem.core.domain import Domain
 
-        a = inner(grad(u), grad(v)) * dx
-        L = inner(self.f * v) * dx
+    mesh = UnitSquareMesh(10, 10)
+    equation = Poisson()
+    domain = Domain(mesh, equation, "poisson")
+    domain.spaces.assign_function_space('U', "CG", 1)
 
+    problem = LinearVariationalProblem(domain.equation.a, domain.equation.L)
+    solver = LinearVariationalSolver(problem)
+    solver.solve()
+
+if __name__ == "__main__":
+    tests()

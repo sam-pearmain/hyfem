@@ -1,4 +1,5 @@
 import abc
+from re import T
 import ufl
 import ufl.equation
 
@@ -17,6 +18,12 @@ class Solvable(abc.ABC):
         self._domain = None
 
     @Property
+    def domain(self) -> Domain:
+        if self._domain is None:
+            raise AttributeError(f"tried to access domain of {type(self).__name__} but it is unset")
+        return self._domain
+    
+    @Property
     def ufl_form(self) -> ufl.Form: 
         return self._ufl_form_impl()
     
@@ -28,11 +35,14 @@ class Solvable(abc.ABC):
     def unknowns(self) -> List[str]:
         return self._unknowns_impl()
 
+    def is_solvable(self) -> bool:
+        return True
+
     def is_system_of_equations(self) -> bool:
         return self._is_system_of_equations_impl()
 
     def assign_domain(self, domain: Domain) -> None:
-        domain_equations = type(self._domain.equation).__name__
+        domain_equations = type(domain.equation).__name__
         if not domain_equations == type(self).__name__:
             raise ValueError(f"attempted to assign <Spaces ({domain_equations})> object to {type(self).__name__}")
         self._domain = domain
@@ -91,15 +101,10 @@ class PsuedotimeMixin(abc.ABC):
 
 class SourceMixin(abc.ABC):
     """A mixin for equations with source terms"""
-    ...
+    @Property
+    def f(self) -> ufl.Form:
+        return self._f
 
-class ContinuousGalerkinMixin(abc.ABC):
-    """A mixin for forms that derive from a continuous function space"""
-    ...
-
-class DiscontinuousGalerkinMixin(abc.ABC):
-    """A mixin for forms that derive from a discontinuous function space"""
-    ...
-
-class PetrovGalerkinMixin(abc.ABC):
-    """A mixin for forms where test and trial functions are selected from different function spaces"""
+    @abc.abstractmethod
+    def _f_impl(self) -> ufl.Form:
+        ...

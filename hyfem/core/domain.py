@@ -6,12 +6,14 @@ from typing import TypeVar, Generic
 from firedrake import SpatialCoordinate
 from firedrake.mesh import MeshGeometry, MeshTopology
 from hyfem.firedrake.constructors import facet_normal
-from hyfem.core.eqns import Solvable
 from hyfem.core.spaces import Spaces
 from hyfem.utils import *
 
+if type_checking():
+    from hyfem.core.eqns import Solvable
 
-E = TypeVar('E', bound = Solvable)
+
+E = TypeVar('E', bound = 'Solvable')
 class Domain(Generic[E]):
     _mesh: MeshGeometry
     _spaces: Spaces

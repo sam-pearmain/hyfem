@@ -1,12 +1,5 @@
 from .eqn import Equation
-from .system import System
+from .system import CoupledEquations
 from .traits import (
-    Solvable, 
-    Unclosed, 
-    Spatial, 
-    Temporal, 
-    LinearInSpace, 
-    NonlinearInSpace, 
-    LinearInTime,
-    NonlinearInTime, 
+    Solvable,  
 )

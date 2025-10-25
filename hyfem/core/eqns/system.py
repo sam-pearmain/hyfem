@@ -1,8 +1,5 @@
-import abc
-
 from typing import Generic, List
 
-from hyfem.core.eqns import Solvable
 from hyfem.core.eqns.eqn import Equation, LinearEquation, Nonlinear
 from hyfem.core.eqns.traits import Linear, Nonlinear, Solvable 
 from hyfem.utils import *

@@ -1,35 +1,35 @@
 import warnings
 
-from typing import List, Mapping, Tuple, Generic, TypeVar
-from numpy.typing import ArrayLike
+from typing import List, Mapping, Tuple, Generic, TypeVar, Union, Optional
+from firedrake import Function
 
-from firedrake import BaseFunctionSpace, MeshGeometry, Function
-from firedrake.functionspaceimpl import MixedFunctionSpace
-from firedrake.ufl_expr import Argument, Coargument
-from ufl.argument import Coargument
-
-from hyfem.core.eqns import (Equation, System)
-from hyfem.core.eqns.traits import Solvable
 from hyfem.firedrake import *
 from hyfem.utils import *
 
-S = TypeVar('S', bound = Solvable) # i.e. a generic equation or system of equations
+if type_checking():
+    from numpy.typing import ArrayLike
+    from firedrake import BaseFunctionSpace, MeshGeometry
+    from firedrake.functionspaceimpl import MixedFunctionSpace
+    from firedrake.ufl_expr import Argument, Coargument
+    from hyfem.core.eqns import Solvable
+
+
+S = TypeVar('S', bound = 'Solvable') # i.e. a generic equation or system of equations
 class Spaces(Generic[S], object):
     _eqn: S
-    _mesh: MeshGeometry
-    _vars: List[str]
-    _spaces: Mapping[str, BaseFunctionSpace | None]
+    _mesh: 'MeshGeometry'
+    _spaces: Mapping[str, 'BaseFunctionSpace']
 
-    def __init__(self, eqn: S, mesh: MeshGeometry) -> None:
-        if not isinstance(eqn, Solvable):
+    def __init__(self, eqn: S, mesh: 'MeshGeometry') -> None:
+        if not eqn.is_solvable():
             raise TypeError(
-                f"eqn must inherit from ABC: {Solvable.__name__}," + 
+                f"eqn must inherit from ABC: Solvable, " + 
                 f"{type(eqn).__name__} does not"
             )
         
         self._eqn = eqn
         self._mesh = mesh
-        self._spaces = {var: None for var in self._vars}
+        self._spaces = {var: None for var in eqn.unknowns}
 
     def assign_function_space(
             self, 
@@ -79,13 +79,13 @@ class Spaces(Generic[S], object):
         # this might cause some problems if we change from CG to DG, for example
         self._spaces[var] = space
 
-    def defined_on(self) -> Tuple[Solvable, MeshGeometry]:
+    def defined_on(self) -> Tuple['Solvable', 'MeshGeometry']:
         return tuple(self._eqn, self._mesh)
 
     def defined_on_str(self) -> Tuple[str, str]:
         return tuple(type(self._eqn).__name__, type(self._mesh).__name__)
 
-    def get_mixed_function_space(self, *vars: str, name: str | None = None) -> MixedFunctionSpace:
+    def get_mixed_function_space(self, *vars: str, name: str | None = None) -> 'MixedFunctionSpace':
         """Returns the mixed space for the given vars, if no vars are given returns entire mixed space"""
         if not self._eqn.is_system():
             raise RuntimeError(
@@ -96,14 +96,14 @@ class Spaces(Generic[S], object):
         spaces = self.get_function_spaces(*vars)
         return mixed_function_space(spaces, name) 
     
-    def get_function_space(self, var: str) -> BaseFunctionSpace:
+    def get_function_space(self, var: str) -> 'BaseFunctionSpace':
         """Returns the function space assigned to the given variable"""
         self._validate_variable(var)
         if not self._space_assigned(var):
             raise AttributeError(f"{var} has no assigned function space")
         return self._spaces[var]
 
-    def get_function_spaces(self, *vars: str) -> Tuple[BaseFunctionSpace, ...]:
+    def get_function_spaces(self, *vars: str) -> Tuple['BaseFunctionSpace', ...]:
         """Gets the function spaces for the given vars, if no vars given returns all spaces"""
         if not vars:
             if not self.all_spaces_assigned():
@@ -112,27 +112,27 @@ class Spaces(Generic[S], object):
 
         return tuple(self.get_function_space(var) for var in vars)
     
-    def get_trial_function(self, var: str) -> Coargument | Argument:
+    def get_trial_function(self, var: str) -> Union['Argument', 'Coargument']:
         """Creates a trial function in the given var's function space"""
         self._validate_variable(var)
         return trial_function(self._spaces[var])
     
-    def get_trial_functions(self, *vars: str) -> Tuple[Coargument, ...] | Tuple[Argument, ...]:
+    def get_trial_functions(self, *vars: str) -> Tuple['Coargument', ...] | Tuple['Argument', ...]:
         """Creates a list of trial functions in the given vars' function spaces"""
         spaces = self.get_function_spaces(*vars)
         return tuple(trial_function(space) for space in spaces)
     
-    def get_test_function(self, var: str) -> Coargument | Argument:
+    def get_test_function(self, var: str) -> Union['Argument', 'Coargument']:
         """Creates a test function in the given var's function space"""
         self._validate_variable(var)
         return test_function(self._spaces[var])
     
-    def get_test_functions(self, *vars: str) -> Tuple[Coargument, ...] | Tuple[Argument, ...]:
+    def get_test_functions(self, *vars: str) -> Tuple['Coargument', ...] | Tuple['Argument', ...]:
         """Creates a list of test functions in the given vars' function spaces"""
         spaces = self.get_function_spaces(*vars)
         return tuple(test_function(space) for space in spaces)
 
-    def create_function(self, var: str, val: ArrayLike | None = None, name: str | None = None) -> Function:
+    def create_function(self, var: str, val: Optional['ArrayLike'], name: str | None = None) -> Function:
         """Creates and returns a Firedrake Function for the given variable"""
         space = self.get_function_space(var)
         return Function(space, val = val, name = name)
