@@ -80,7 +80,7 @@ class Spaces(Generic[S], object):
         self._spaces[var] = space
 
     def defined_on(self) -> Tuple['Solvable', 'MeshGeometry']:
-        return tuple(self._eqn, self._mesh)
+        return tuple([self._eqn, self._mesh])
 
     def defined_on_str(self) -> Tuple[str, str]:
         return tuple(type(self._eqn).__name__, type(self._mesh).__name__)
