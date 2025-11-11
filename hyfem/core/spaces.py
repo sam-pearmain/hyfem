@@ -3,6 +3,7 @@ import warnings
 from typing import List, Mapping, Tuple, Generic, TypeVar, Union, Optional
 from firedrake import Function
 
+from hyfem.core.mesh import Mesh
 from hyfem.firedrake import *
 from hyfem.utils import *
 
@@ -12,15 +13,16 @@ if type_checking():
     from firedrake.functionspaceimpl import MixedFunctionSpace
     from firedrake.ufl_expr import Argument, Coargument
     from hyfem.core.eqns import Solvable
+    from hyfem.core.mesh import Mesh
 
 
 S = TypeVar('S', bound = 'Solvable') # i.e. a generic equation or system of equations
 class Spaces(Generic[S], object):
     _eqn: S
-    _mesh: 'MeshGeometry'
+    _mesh: 'Mesh'
     _spaces: Mapping[str, 'BaseFunctionSpace']
 
-    def __init__(self, eqn: S, mesh: 'MeshGeometry') -> None:
+    def __init__(self, eqn: S, mesh: 'Mesh') -> None:
         if not eqn.is_solvable():
             raise TypeError(
                 f"eqn must inherit from ABC: Solvable, " + 

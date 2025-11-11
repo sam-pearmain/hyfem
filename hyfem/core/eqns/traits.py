@@ -127,7 +127,7 @@ class SourceMixin(abc.ABC):
     """A mixin for equations with source terms"""
     @Property
     def f(self) -> ufl.Form:
-        return self._f
+        return self._f_impl()
 
     @abc.abstractmethod
     def _f_impl(self) -> ufl.Form:

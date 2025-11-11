@@ -1,6 +1,8 @@
 import ufl
 import numbers
 
+from typing import Any
+
 from firedrake import SpatialCoordinate
 from firedrake.mesh import MeshGeometry, MeshTopology
 from hyfem.firedrake import facet_normal
@@ -19,6 +21,9 @@ class Mesh:
 
         if not self._has_standard_topology_backend():
             raise TypeError(f"unsupported mesh topology: {type(self._mesh.topology)}")
+
+    def __getattr__(self, name) -> Any:
+        return getattr(self._mesh, name)
 
     @Property
     def X(self) -> SpatialCoordinate:

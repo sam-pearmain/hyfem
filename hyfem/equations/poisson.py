@@ -35,7 +35,7 @@ def tests():
     mesh = unit_square_mesh(10, 10)
     equation = Poisson()
     domain = Domain(mesh, equation, "poisson")
-    domain.spaces.assign_function_space('U', "CG", 1)
+    domain.spaces.assign_function_space('U', "CG", 1) # wtf
 
     problem = LinearVariationalProblem(domain.equation.a, domain.equation.L)
     solver = LinearVariationalSolver(problem)
