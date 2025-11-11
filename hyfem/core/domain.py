@@ -28,7 +28,7 @@ class Domain(Generic[E]):
         self._mesh = mesh
         self._spaces = Spaces(eqn, mesh)
         self._equation = eqn
-        self._equation.assign_domain(self._spaces)
+        self._equation.assign_spaces(self._spaces)
         
         if not self._has_standard_topology_backend():
             raise TypeError(f"unsupported mesh topology: {type(self._mesh.topology)}")

@@ -3,7 +3,7 @@ from firedrake import *
 from hyfem.core.discretisation import ContinuousGalerkinMixin
 from hyfem.core.eqns.eqn import LinearEquation
 from hyfem.core.eqns.traits import SourceMixin
-from hyfem.firedrake import trial_function, test_function
+from hyfem.firedrake import trial_function, test_function, unit_square_mesh
 from hyfem.utils import *
 
 if type_checking():
@@ -34,7 +34,7 @@ class Poisson(LinearEquation, ContinuousGalerkinMixin, SourceMixin):
 def tests():
     from hyfem.core.domain import Domain
 
-    mesh = UnitSquareMesh(10, 10)
+    mesh = unit_square_mesh(10, 10)
     equation = Poisson()
     domain = Domain(mesh, equation, "poisson")
     domain.spaces.assign_function_space('U', "CG", 1)

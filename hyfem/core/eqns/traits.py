@@ -5,23 +5,23 @@ import ufl.equation
 
 from typing import List
 
-from hyfem.core.domain import Domain
+from hyfem.core.domain import Spaces
 from hyfem.utils import *
 
 
 class Solvable(abc.ABC):
     """The abstract base class for any equation or system of equations"""
-    _domain: Domain | None
+    _spaces: Spaces | None
 
     def __init__(self) -> None:
         super().__init__()
-        self._domain = None
+        self._spaces = None
 
     @Property
-    def domain(self) -> Domain:
-        if self._domain is None:
-            raise AttributeError(f"tried to access domain of {type(self).__name__} but it is unset")
-        return self._domain
+    def spaces(self) -> Spaces:
+        if not self.has_spaces():
+            raise AttributeError(f"spaces for {type(self).__name__} is unset")
+        return self._spaces
     
     @Property
     def ufl_form(self) -> ufl.Form: 
@@ -41,14 +41,14 @@ class Solvable(abc.ABC):
     def is_system_of_equations(self) -> bool:
         return self._is_system_of_equations_impl()
 
-    def assign_domain(self, domain: Domain) -> None:
-        domain_equations = type(domain.equation).__name__
-        if not domain_equations == type(self).__name__:
-            raise ValueError(f"attempted to assign <Spaces ({domain_equations})> object to {type(self).__name__}")
-        self._domain = domain
+    def assign_spaces(self, spaces: Spaces) -> None:
+        defined_on_eqn, _ = spaces.defined_on()
+        if not type(defined_on_eqn).__name__ == type(self).__name__:
+            raise ValueError(f"attempted to assign <Spaces ({defined_on_eqn})> object to {type(self).__name__}")
+        self._spaces = spaces
 
-    def has_domain(self) -> bool:
-        return self._domain is not None
+    def has_spaces(self) -> bool:
+        return self._spaces is not None
 
     @abc.abstractmethod
     def _ufl_form_impl(self) -> ufl.Form: 
