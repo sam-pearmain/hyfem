@@ -1,6 +1,6 @@
 import warnings
 
-from typing import List, Mapping, Tuple, Generic, TypeVar, Union, Optional
+from typing import Mapping, Tuple, Generic, TypeVar, Union, Optional
 from firedrake import Function
 
 from hyfem.core.mesh import Mesh
@@ -20,7 +20,7 @@ S = TypeVar('S', bound = 'Solvable') # i.e. a generic equation or system of equa
 class Spaces(Generic[S], object):
     _eqn: S
     _mesh: 'Mesh'
-    _spaces: Mapping[str, 'BaseFunctionSpace']
+    _spaces: Mapping[String, 'BaseFunctionSpace']
 
     def __init__(self, eqn: S, mesh: 'Mesh') -> None:
         if not eqn.is_solvable():
@@ -35,10 +35,10 @@ class Spaces(Generic[S], object):
 
     def assign_function_space(
             self, 
-            var: str, 
-            family: str, 
+            var: String, 
+            family: String, 
             degree: int,
-            name: str | None = None, 
+            name: String | None = None, 
             vector_valued: bool = False, 
         ) -> None:
         """
@@ -50,18 +50,18 @@ class Spaces(Generic[S], object):
         name = name if name else f"V_{var}"
 
         if vector_valued:
-            space = vector_function_space(self._mesh, family, degree, name = name)
+            space = vector_function_space(self._mesh.ufl_domain, family, degree, name = name)
         else:
-            space = function_space(self._mesh, family, degree, name = name)
+            space = function_space(self._mesh.ufl_domain, family, degree, name = name)
 
         self._spaces[var] = space
 
     def update_function_space(
             self, 
-            var: str, 
-            family: str, 
+            var: String, 
+            family: String, 
             degree: int, 
-            name: str | None = None, 
+            name: String | None = None, 
             vector_valued: bool = False, 
         ) -> None:
         """
@@ -74,9 +74,9 @@ class Spaces(Generic[S], object):
         name = self._spaces[var].label()
 
         if vector_valued:
-            space = vector_function_space(self._mesh, family, degree, name = name)
+            space = vector_function_space(self._mesh.ufl_domain, family, degree, name = name)
         else:
-            space = function_space(self._mesh, family, degree, name = name)
+            space = function_space(self._mesh.ufl_domain, family, degree, name = name)
 
         # this might cause some problems if we change from CG to DG, for example
         self._spaces[var] = space
@@ -84,10 +84,10 @@ class Spaces(Generic[S], object):
     def defined_on(self) -> Tuple['Solvable', 'MeshGeometry']:
         return tuple([self._eqn, self._mesh])
 
-    def defined_on_str(self) -> Tuple[str, str]:
-        return tuple(type(self._eqn).__name__, type(self._mesh).__name__)
+    def defined_on_str(self) -> Tuple[String, String]:
+        return tuple(String(self._eqn), str(self._mesh))
 
-    def get_mixed_function_space(self, *vars: str, name: str | None = None) -> 'MixedFunctionSpace':
+    def get_mixed_function_space(self, *vars: String, name: String | None = None) -> 'MixedFunctionSpace':
         """Returns the mixed space for the given vars, if no vars are given returns entire mixed space"""
         if not self._eqn.is_system():
             raise RuntimeError(
@@ -98,14 +98,14 @@ class Spaces(Generic[S], object):
         spaces = self.get_function_spaces(*vars)
         return mixed_function_space(spaces, name) 
     
-    def get_function_space(self, var: str) -> 'BaseFunctionSpace':
+    def get_function_space(self, var: String) -> 'BaseFunctionSpace':
         """Returns the function space assigned to the given variable"""
         self._validate_variable(var)
         if not self._space_assigned(var):
             raise AttributeError(f"{var} has no assigned function space")
         return self._spaces[var]
 
-    def get_function_spaces(self, *vars: str) -> Tuple['BaseFunctionSpace', ...]:
+    def get_function_spaces(self, *vars: String) -> Tuple['BaseFunctionSpace', ...]:
         """Gets the function spaces for the given vars, if no vars given returns all spaces"""
         if not vars:
             if not self.all_spaces_assigned():
@@ -114,32 +114,32 @@ class Spaces(Generic[S], object):
 
         return tuple(self.get_function_space(var) for var in vars)
     
-    def get_trial_function(self, var: str) -> Union['Argument', 'Coargument']:
+    def get_trial_function(self, var: String) -> Union['Argument', 'Coargument']:
         """Creates a trial function in the given var's function space"""
         self._validate_variable(var)
         return trial_function(self._spaces[var])
     
-    def get_trial_functions(self, *vars: str) -> Tuple['Coargument', ...] | Tuple['Argument', ...]:
+    def get_trial_functions(self, *vars: String) -> Tuple['Coargument', ...] | Tuple['Argument', ...]:
         """Creates a list of trial functions in the given vars' function spaces"""
         spaces = self.get_function_spaces(*vars)
         return tuple(trial_function(space) for space in spaces)
     
-    def get_test_function(self, var: str) -> Union['Argument', 'Coargument']:
+    def get_test_function(self, var: String) -> Union['Argument', 'Coargument']:
         """Creates a test function in the given var's function space"""
         self._validate_variable(var)
         return test_function(self._spaces[var])
     
-    def get_test_functions(self, *vars: str) -> Tuple['Coargument', ...] | Tuple['Argument', ...]:
+    def get_test_functions(self, *vars: String) -> Tuple['Coargument', ...] | Tuple['Argument', ...]:
         """Creates a list of test functions in the given vars' function spaces"""
         spaces = self.get_function_spaces(*vars)
         return tuple(test_function(space) for space in spaces)
 
-    def create_function(self, var: str, val: Optional['ArrayLike'], name: str | None = None) -> Function:
+    def create_function(self, var: String, val: Optional['ArrayLike'], name: String | None = None) -> Function:
         """Creates and returns a Firedrake Function for the given variable"""
         space = self.get_function_space(var)
         return Function(space, val = val, name = name)
     
-    def create_functions(self, *vars: str) -> Tuple[Function]:
+    def create_functions(self, *vars: String) -> Tuple[Function]:
         """Creates and returns a tuple of Firedrake Functions in the given vars' function spaces"""
         spaces = self.get_function_spaces(*vars)
         return tuple(Function(space) for space in spaces)
@@ -148,13 +148,13 @@ class Spaces(Generic[S], object):
         """Checks whether all variables have an assigned function space"""
         return all(space is not None for space in self._spaces.values())
 
-    def _validate_variable(self, var: str) -> None:
+    def _validate_variable(self, var: String) -> None:
         """Validates whether the given variable exists within the spaces"""
         if var not in self._spaces.keys():
             raise ValueError(
                 f"{var} not in the {type(self._eqn).__name__} unknowns"
             )
 
-    def _space_assigned(self, var: str) -> bool:
+    def _space_assigned(self, var: String) -> bool:
         """Checks whether the given var already has an assigned function space"""
         return self._spaces[var] is not None

@@ -3,7 +3,7 @@ from firedrake import *
 from hyfem.core.discretisation import ContinuousGalerkinMixin
 from hyfem.core.eqns.eqn import LinearEquation
 from hyfem.core.eqns.traits import SourceMixin
-from hyfem.firedrake import trial_function, test_function, unit_square_mesh
+from hyfem.firedrake import unit_square_mesh
 from hyfem.utils import *
 
 
@@ -24,8 +24,8 @@ class Poisson(LinearEquation, ContinuousGalerkinMixin, SourceMixin):
         return inner(self.f, v) * dx
     
     def _f_impl(self):
-        V = self.domain.spaces.get_function_space('U')
-        x, y = self.spatial_coordinates
+        V = self.spaces.get_function_space('U')
+        x, y = self.mesh.spatial_coordinates
         return Function(V).interpolate(x + y)
 
 
@@ -35,9 +35,10 @@ def tests():
     mesh = unit_square_mesh(10, 10)
     equation = Poisson()
     domain = Domain(mesh, equation, "poisson")
-    domain.spaces.assign_function_space('U', "CG", 1) # wtf
+    domain.spaces.assign_function_space('U', "CG", 1)
+    solution = Function(domain.spaces.get_function_space('U'))
 
-    problem = LinearVariationalProblem(domain.equation.a, domain.equation.L)
+    problem = LinearVariationalProblem(domain.equation.a, domain.equation.L, solution)
     solver = LinearVariationalSolver(problem)
     solver.solve()
 

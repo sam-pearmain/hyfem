@@ -33,6 +33,7 @@ class Solvable(abc.ABC):
     def mesh(self) -> 'Mesh':
         if not self.has_mesh():
             raise AttributeError(f"mesh not initialised for {self}")
+        return self._mesh
 
     @Property
     def ufl_form(self) -> ufl.Form: 

@@ -25,6 +25,14 @@ class Mesh:
     def __getattr__(self, name) -> Any:
         return getattr(self._mesh, name)
 
+    def __str__(self) -> String:
+        return f"{type(self).__name__}".lower()
+
+    @Property
+    def ufl_domain(self) -> MeshGeometry:
+        """Access the underlying ufl representation of the mesh"""
+        return self._mesh
+
     @Property
     def X(self) -> SpatialCoordinate:
         return self.spatial_coordinates
@@ -60,22 +68,22 @@ class Mesh:
 
     @Property
     def spatial_coordinates(self) -> SpatialCoordinate:
-        return SpatialCoordinate(self._mesh)
+        return SpatialCoordinate(self.ufl_domain)
 
     @Property
     def facet_normal(self) -> ufl.FacetNormal:
-        return facet_normal(self._mesh)
+        return facet_normal(self.ufl_domain)
     
     @Property
     def topological_dimensions(self) -> numbers.Integral:
-        return self._mesh.topological_dimension()
+        return self.ufl_domain.topological_dimension()
     
     @Property
     def geometric_dimensions(self) -> numbers.Integral:
-        return self._mesh.geometric_dimension()
+        return self.ufl_domain.geometric_dimension()
 
     def _has_standard_topology_backend(self) -> bool:
-        return type(self._mesh.topology) is MeshTopology
+        return type(self.ufl_domain.topology) is MeshTopology
 
     def _has_firedrake_default_name(self) -> bool:
-        return self._mesh.name == "firedrake_default"
+        return self.ufl_domain.name == "firedrake_default"

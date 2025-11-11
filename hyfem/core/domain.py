@@ -1,7 +1,7 @@
 from typing import Optional, TypeVar, Generic
 
-from firedrake import SpatialCoordinate
-from firedrake.mesh import MeshGeometry, MeshTopology
+from firedrake import Function
+from firedrake.mesh import MeshGeometry
 from hyfem.firedrake.constructors import facet_normal
 from hyfem.core.spaces import Spaces
 from hyfem.core.mesh import Mesh
@@ -40,6 +40,9 @@ class Domain(Generic[E]):
     def equation(self) -> E:
         return self._equation
     
+    @Property
+    def solution(self) -> Function:
+        raise NotImplementedError("hands off")
     
 def tests():
     pass
