@@ -42,5 +42,8 @@ def tests():
     solver = LinearVariationalSolver(problem)
     solver.solve()
 
+    outfile = VTKFile("out.pvd")
+    outfile.write(solution)
+
 if __name__ == "__main__":
     tests()
