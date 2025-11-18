@@ -31,19 +31,34 @@ class Poisson(LinearEquation, ContinuousGalerkinMixin, SourceMixin):
 
 def tests():
     from hyfem.core.domain import Domain
+    from firedrake import DirichletBC, Constant
 
     mesh = unit_square_mesh(10, 10)
     equation = Poisson()
     domain = Domain(mesh, equation, "poisson")
     domain.spaces.assign_function_space('U', "CG", 1)
     solution = Function(domain.spaces.get_function_space('U'))
+    bcs = DirichletBC(domain.spaces.get_function_space('U'), Constant(0), "on_boundary")
 
-    problem = LinearVariationalProblem(domain.equation.a, domain.equation.L, solution)
+    problem = LinearVariationalProblem(
+        domain.equation.a, 
+        domain.equation.L, 
+        solution, 
+        bcs = bcs
+    )
     solver = LinearVariationalSolver(problem)
     solver.solve()
 
     outfile = VTKFile("out.pvd")
     outfile.write(solution)
+
+def test2():
+    mesh = unit_square_mesh(10, 10)
+    V = FunctionSpace(mesh, "CG", 2)
+    u = TrialFunction(V)
+    v = TestFunction(V)
+
+    a = inner
 
 if __name__ == "__main__":
     tests()
